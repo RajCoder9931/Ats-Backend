@@ -1,5 +1,7 @@
 # models/candidate_model.py
+# -*- coding: utf-8 -*-
 from pymongo import MongoClient
+from bson.objectid import ObjectId
 from config import MONGO_URI
 import datetime
 
@@ -20,7 +22,56 @@ def get_all_candidates():
     result = []
 
     for doc in cursor:
-        doc["_id"] = str(doc["_id"])  # ObjectId to string
+        doc["_id"] = str(doc["_id"])
         result.append(doc)
 
     return result
+
+
+def get_candidate_by_id(candidate_id):
+    try:
+        return candidates.find_one({"_id": ObjectId(candidate_id)})
+    except:
+        return None
+
+
+# 🔥 UPDATE CANDIDATE (IMPORTANT)
+def update_candidate_by_id(candidate_id, data):
+    try:
+        update_fields = {}
+
+        allowed_fields = [
+            "name",
+            "email",
+            "phone",
+            "location",
+            "country",
+            "state",
+            "locality",
+            "dateOfBirth",
+            "gender",
+            "skills",
+            "currentCompany",
+            "currentPosition",
+            "experience",
+            "notes",
+            "status",
+            "stage"
+        ]
+
+        for field in allowed_fields:
+            if field in data:
+                update_fields[field] = data[field]
+
+        if not update_fields:
+            return None
+
+        candidates.update_one(
+            {"_id": ObjectId(candidate_id)},
+            {"$set": update_fields}
+        )
+
+        return candidates.find_one({"_id": ObjectId(candidate_id)})
+
+    except:
+        return None

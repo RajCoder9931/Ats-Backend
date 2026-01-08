@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-
 from pymongo import MongoClient
+from bson.objectid import ObjectId
 from config import MONGO_URI
 import datetime
 
@@ -25,3 +25,14 @@ def get_all_jobs():
         result.append(doc)
 
     return result
+
+
+# 🔥 ADD THIS FUNCTION (IMPORTANT)
+def get_job_by_id(job_id):
+    try:
+        return jobs.find_one(
+            {"_id": ObjectId(job_id)},
+            {"title": 1}   # sirf title chahiye
+        )
+    except:
+        return None
