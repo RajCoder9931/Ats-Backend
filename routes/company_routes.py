@@ -1,4 +1,3 @@
-# routes/company_routes.py
 from flask import Blueprint, request, jsonify
 from middleware.auth_middleware import auth_required
 from models.company_model import (

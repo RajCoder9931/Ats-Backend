@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from pymongo import MongoClient
 from bson.objectid import ObjectId
 from config import MONGO_URI
@@ -26,8 +25,6 @@ def get_all_jobs():
 
     return result
 
-
-# 🔥 ADD THIS FUNCTION (IMPORTANT)
 def get_job_by_id(job_id):
     try:
         return jobs.find_one(

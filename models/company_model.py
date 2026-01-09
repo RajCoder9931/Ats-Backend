@@ -1,4 +1,3 @@
-# models/company_model.py
 from pymongo import MongoClient
 from bson import ObjectId
 from config import MONGO_URI

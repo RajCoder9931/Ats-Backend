@@ -9,7 +9,6 @@ from models.candidate_model import (
 candidate_bp = Blueprint("candidates", __name__, url_prefix="/api/candidates")
 
 
-# ================= ADD CANDIDATE =================
 @candidate_bp.route("", methods=["POST"])
 @auth_required
 def add_candidate():
@@ -47,16 +46,12 @@ def add_candidate():
     saved = create_candidate(candidate)
     return jsonify(saved), 201
 
-
-# ================= FETCH CANDIDATES =================
 @candidate_bp.route("", methods=["GET"])
 @auth_required
 def fetch_candidates():
     data = get_all_candidates()
     return jsonify(data), 200
 
-
-# ================= UPDATE CANDIDATE =================
 @candidate_bp.route("/<candidate_id>", methods=["PUT"])
 @auth_required
 def update_candidate(candidate_id):

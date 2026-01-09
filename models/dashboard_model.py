@@ -24,3 +24,4 @@ def get_dashboard_stats(user_id=None):
         "activeJobs": active_jobs,
         "interviewsToday": interviews_today,
      }
+

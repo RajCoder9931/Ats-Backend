@@ -2,7 +2,10 @@ from flask import Blueprint, request, jsonify
 from middleware.auth_middleware import auth_required
 from models.pipeline_model import (
     assign_job_to_candidate,
-    update_candidate_stage
+    update_candidate_stage,
+    get_candidates_by_job,
+    get_candidates_by_stage,
+    get_candidate_pipeline
 )
 
 pipeline_bp = Blueprint(
@@ -15,7 +18,6 @@ pipeline_bp = Blueprint(
 @auth_required
 def assign_job():
     data = request.json
-
     candidate_id = data.get("candidateId")
     job_id = data.get("jobId")
     job_title = data.get("jobTitle")
@@ -24,7 +26,6 @@ def assign_job():
         return jsonify({"message": "candidateId, jobId, jobTitle required"}), 400
 
     candidate = assign_job_to_candidate(candidate_id, job_id, job_title)
-
     candidate["_id"] = str(candidate["_id"])
 
     return jsonify({
@@ -37,7 +38,6 @@ def assign_job():
 @auth_required
 def change_stage():
     data = request.json
-
     candidate_id = data.get("candidateId")
     stage = data.get("stage")
 
@@ -45,7 +45,6 @@ def change_stage():
         return jsonify({"message": "candidateId and stage required"}), 400
 
     candidate = update_candidate_stage(candidate_id, stage)
-
     if not candidate:
         return jsonify({"message": "Invalid stage"}), 400
 
@@ -55,3 +54,37 @@ def change_stage():
         "message": "Stage updated successfully",
         "candidate": candidate
     }), 200
+
+
+@pipeline_bp.route("/job/<job_id>", methods=["GET"])
+@auth_required
+def candidates_by_job(job_id):
+    candidates = get_candidates_by_job(job_id)
+
+    for c in candidates:
+        c["_id"] = str(c["_id"])
+
+    return jsonify(candidates), 200
+
+
+@pipeline_bp.route("/stage/<stage>", methods=["GET"])
+@auth_required
+def candidates_by_stage(stage):
+    candidates = get_candidates_by_stage(stage)
+
+    for c in candidates:
+        c["_id"] = str(c["_id"])
+
+    return jsonify(candidates), 200
+
+
+@pipeline_bp.route("/candidate/<candidate_id>", methods=["GET"])
+@auth_required
+def candidate_pipeline(candidate_id):
+    candidate = get_candidate_pipeline(candidate_id)
+
+    if not candidate:
+        return jsonify({"message": "Candidate not found"}), 404
+
+    candidate["_id"] = str(candidate["_id"])
+    return jsonify(candidate), 200

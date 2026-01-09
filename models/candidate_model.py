@@ -1,5 +1,3 @@
-# models/candidate_model.py
-# -*- coding: utf-8 -*-
 from pymongo import MongoClient
 from bson.objectid import ObjectId
 from config import MONGO_URI
@@ -34,8 +32,6 @@ def get_candidate_by_id(candidate_id):
     except:
         return None
 
-
-# 🔥 UPDATE CANDIDATE (IMPORTANT)
 def update_candidate_by_id(candidate_id, data):
     try:
         update_fields = {}
