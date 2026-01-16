@@ -10,6 +10,7 @@ from routes.user_routes import user_bp
 from routes.dashboard_routes import dashboard_bp
 from routes.pipeline_routes import pipeline_bp
 from routes.notification_routes import notification_bp
+from routes.lead_routes import lead_bp
 
 app = Flask(__name__)
 CORS(app)
@@ -23,6 +24,7 @@ app.register_blueprint(user_bp)
 app.register_blueprint(dashboard_bp)
 app.register_blueprint(pipeline_bp)
 app.register_blueprint(notification_bp)
+app.register_blueprint(lead_bp)
 
 @app.route("/")
 def health():
