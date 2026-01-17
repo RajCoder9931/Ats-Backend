@@ -13,3 +13,4 @@ dashboard_bp = Blueprint(
 def dashboard_stats():
     stats = get_dashboard_stats(request.user.get("id"))
     return jsonify(stats), 200
+

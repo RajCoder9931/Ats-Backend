@@ -3,6 +3,7 @@ from middleware.auth_middleware import auth_required
 from models.lead_model import create_lead, get_all_leads
 from models.job_model import get_job_by_id
 from models.candidate_model import get_candidate_by_id
+from models.lead_model import create_lead, get_all_leads, get_lead_by_id
 
 lead_bp = Blueprint("leads", __name__, url_prefix="/api/leads")
 
@@ -44,11 +45,19 @@ def add_lead():
 
     saved = create_lead(lead)
     return jsonify(saved), 201
-
-
-
+ 
 @lead_bp.route("", methods=["GET"])
 @auth_required
 def fetch_leads():
     data = get_all_leads(request.user.get("id"))
     return jsonify(data), 200
+
+@lead_bp.route("/<lead_id>", methods=["GET"])
+@auth_required
+def fetch_lead_by_id(lead_id):
+    lead = get_lead_by_id(lead_id, request.user.get("id"))
+
+    if not lead:
+        return jsonify({"message": "Lead not found"}), 404
+
+    return jsonify(lead), 200
