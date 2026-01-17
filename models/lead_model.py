@@ -14,7 +14,6 @@ def create_lead(data):
     data["_id"] = str(result.inserted_id)
     return data
 
-
 def get_all_leads(user_id):
     cursor = leads.find({"createdBy": user_id}).sort("createdAt", -1)
     result = []
