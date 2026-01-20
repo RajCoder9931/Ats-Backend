@@ -6,7 +6,7 @@ job_bp = Blueprint("jobs", __name__, url_prefix="/api/jobs")
 
 
 @job_bp.route("", methods=["POST"])
-@auth_required
+@auth_required(allowed_roles=["admin", "super_admin"])
 def add_job():
     data = request.get_json()
 
@@ -46,7 +46,7 @@ def add_job():
 
 
 @job_bp.route("", methods=["GET"])
-@auth_required
+@auth_required(allowed_roles=["admin", "super_admin"])
 def fetch_jobs():
     data = get_all_jobs()
     return jsonify(data), 200

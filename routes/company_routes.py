@@ -10,7 +10,7 @@ company_bp = Blueprint("companies", __name__, url_prefix="/api/companies")
 
 
 @company_bp.route("", methods=["POST"])
-@auth_required
+@auth_required(allowed_roles=["admin", "super_admin"])
 def add_company():
     data = request.json
 
@@ -50,14 +50,14 @@ def add_company():
 
 
 @company_bp.route("", methods=["GET"])
-@auth_required
+@auth_required(allowed_roles=["admin", "super_admin"])
 def fetch_companies():
     data = get_all_companies()
     return jsonify(data), 200
 
 
 @company_bp.route("/<company_id>", methods=["GET"])
-@auth_required
+@auth_required(allowed_roles=["admin", "super_admin"])
 def fetch_company(company_id):
     company = get_company_by_id(company_id)
     if not company:

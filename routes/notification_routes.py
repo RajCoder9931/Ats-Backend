@@ -13,7 +13,7 @@ notification_bp = Blueprint(
 
 
 @notification_bp.route("", methods=["GET"])
-@auth_required
+@auth_required(allowed_roles=["admin", "super_admin"])
 def fetch_notifications():
     user_id = request.user.get("id")
     data = get_user_notifications(user_id)
@@ -21,7 +21,7 @@ def fetch_notifications():
 
 
 @notification_bp.route("/<notification_id>/read", methods=["PUT"])
-@auth_required
+@auth_required(allowed_roles=["admin", "super_admin"])
 def read_notification(notification_id):
     mark_notification_read(notification_id)
     return jsonify({"message": "Notification marked as read"}), 200

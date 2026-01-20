@@ -11,7 +11,7 @@ user_bp = Blueprint("users", __name__, url_prefix="/api/users")
 
 
 @user_bp.route("/me", methods=["GET"])
-@auth_required
+@auth_required(allowed_roles=["admin", "super_admin"])
 def get_me():
     user = find_by_id(request.user["id"])
 
@@ -26,7 +26,7 @@ def get_me():
 
 
 @user_bp.route("/me", methods=["PUT"])
-@auth_required
+@auth_required(allowed_roles=["admin", "super_admin"])
 def update_profile():
     data = request.json
     allowed_fields = ["name", "email", "phone"]
@@ -50,7 +50,7 @@ def update_profile():
 
 
 @user_bp.route("/change-password", methods=["PUT"])
-@auth_required
+@auth_required(allowed_roles=["admin", "super_admin"])
 def change_password():
     data = request.json
 

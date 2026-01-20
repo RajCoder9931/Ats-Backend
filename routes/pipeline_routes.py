@@ -15,7 +15,7 @@ pipeline_bp = Blueprint(
 )
 
 @pipeline_bp.route("/assign", methods=["POST"])
-@auth_required
+@auth_required(allowed_roles=["admin", "super_admin"])
 def assign_job():
     data = request.json
     candidate_id = data.get("candidateId")
@@ -35,7 +35,7 @@ def assign_job():
 
 
 @pipeline_bp.route("/stage", methods=["PUT"])
-@auth_required
+@auth_required(allowed_roles=["admin", "super_admin"])
 def change_stage():
     data = request.json
     candidate_id = data.get("candidateId")
@@ -57,7 +57,7 @@ def change_stage():
 
 
 @pipeline_bp.route("/job/<job_id>", methods=["GET"])
-@auth_required
+@auth_required(allowed_roles=["admin", "super_admin"])
 def candidates_by_job(job_id):
     candidates = get_candidates_by_job(job_id)
 
@@ -68,7 +68,7 @@ def candidates_by_job(job_id):
 
 
 @pipeline_bp.route("/stage/<stage>", methods=["GET"])
-@auth_required
+@auth_required(allowed_roles=["admin", "super_admin"])
 def candidates_by_stage(stage):
     candidates = get_candidates_by_stage(stage)
 
@@ -79,7 +79,7 @@ def candidates_by_stage(stage):
 
 
 @pipeline_bp.route("/candidate/<candidate_id>", methods=["GET"])
-@auth_required
+@auth_required(allowed_roles=["admin", "super_admin"])
 def candidate_pipeline(candidate_id):
     candidate = get_candidate_pipeline(candidate_id)
 

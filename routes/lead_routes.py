@@ -10,7 +10,7 @@ lead_bp = Blueprint("leads", __name__, url_prefix="/api/leads")
 
 
 @lead_bp.route("", methods=["POST"])
-@auth_required
+@auth_required(allowed_roles=["admin", "super_admin"])
 def add_lead():
     data = request.get_json()
 
@@ -47,13 +47,13 @@ def add_lead():
     return jsonify(saved), 201
  
 @lead_bp.route("", methods=["GET"])
-@auth_required
+@auth_required(allowed_roles=["admin", "super_admin"])
 def fetch_leads():
     data = get_all_leads(request.user.get("id"))
     return jsonify(data), 200
 
 @lead_bp.route("/<lead_id>", methods=["GET"])
-@auth_required
+@auth_required(allowed_roles=["admin", "super_admin"])
 def fetch_lead_by_id(lead_id):
     lead = get_lead_by_id(lead_id, request.user.get("id"))
 

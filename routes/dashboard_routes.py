@@ -9,7 +9,7 @@ dashboard_bp = Blueprint(
 )
 
 @dashboard_bp.route("/stats", methods=["GET"])
-@auth_required
+@auth_required(allowed_roles=["admin", "super_admin"])
 def dashboard_stats():
     stats = get_dashboard_stats(request.user.get("id"))
     return jsonify(stats), 200

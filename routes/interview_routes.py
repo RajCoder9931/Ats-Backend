@@ -9,7 +9,7 @@ interview_bp = Blueprint("interviews", __name__, url_prefix="/api/interviews")
 
 
 @interview_bp.route("", methods=["POST"])
-@auth_required
+@auth_required(allowed_roles=["admin", "super_admin"])
 def schedule_interview():
     data = request.json
 
@@ -60,6 +60,6 @@ def schedule_interview():
 
 
 @interview_bp.route("/upcoming", methods=["GET"])
-@auth_required
+@auth_required(allowed_roles=["admin", "super_admin"])
 def upcoming_interviews():
     return jsonify(get_upcoming_interviews()), 200
