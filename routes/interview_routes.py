@@ -5,6 +5,7 @@ from models.interview_model import create_interview, get_upcoming_interviews
 from models.candidate_model import get_candidate_by_id
 from models.job_model import get_job_by_id
 
+
 interview_bp = Blueprint("interviews", __name__, url_prefix="/api/interviews")
 
 

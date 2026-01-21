@@ -30,19 +30,48 @@ def get_my_profile():
 
 
 # ==========================
-# Update Own Profile
+# Update Own Profile (FULL PROFILE)
 # ==========================
 @candidate_self_bp.route("/me", methods=["PUT"])
 @auth_required(allowed_roles=["candidate"])
 def update_my_profile():
     data = request.json
 
+    
     allowed_fields = [
+        # Basic info
         "name",
         "phone",
-        "skills",
-        "experience",
+        "dateOfBirth",
+        "gender",
+
+        # Location
+        "location",          # {country, state, city, pincode}
+
+        # Skills & work
+        "skills",            # []
+        "experience",        # []
+        "education",         # []
+        "certifications",    # []
+        "projects",          # []
+
+        # Links
         "resume_url",
+        "portfolio_url",
+        "linkedin_url",
+        "github_url",
+
+        # Preferences
+        "preferred_job_roles",
+        "preferred_locations",
+        "expected_salary",   # {currency, amount}
+        "notice_period_days",
+        "willing_to_relocate",
+
+        # Languages
+        "languages",         # [{language, proficiency}]
+
+        # Meta
         "profile_completed"
     ]
 
@@ -56,7 +85,8 @@ def update_my_profile():
         return jsonify({"message": "Nothing to update"}), 400
 
     candidate = update_candidate_profile(
-        request.user["id"], update_data
+        request.user["id"],
+        update_data
     )
 
     candidate["_id"] = str(candidate["_id"])

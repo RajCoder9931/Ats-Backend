@@ -1,10 +1,15 @@
 from flask import Blueprint, request, jsonify
 from middleware.auth_middleware import auth_required
-from models.job_model import create_job, get_all_jobs
+from models.job_model import (
+    create_job,
+    get_all_jobs,
+    get_jobs_for_candidate
+)
 
 job_bp = Blueprint("jobs", __name__, url_prefix="/api/jobs")
 
 
+# ================= CREATE JOB (ADMIN ONLY) =================
 @job_bp.route("", methods=["POST"])
 @auth_required(allowed_roles=["admin", "super_admin"])
 def add_job():
@@ -45,9 +50,11 @@ def add_job():
     return jsonify(saved), 201
 
 
+# ================= FETCH JOBS (ADMIN + CANDIDATE) =================
 @job_bp.route("", methods=["GET"])
-@auth_required(allowed_roles=["admin", "super_admin"])
+@auth_required(allowed_roles=["admin", "super_admin", "candidate"])
 def fetch_jobs():
-    data = get_all_jobs()
-    return jsonify(data), 200
+    if request.user["role"] == "candidate":
+        return jsonify(get_jobs_for_candidate()), 200
 
+    return jsonify(get_all_jobs()), 200

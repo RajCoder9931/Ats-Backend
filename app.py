@@ -13,6 +13,11 @@ from routes.notification_routes import notification_bp
 from routes.lead_routes import lead_bp
 from routes.candidate_auth_routes import candidate_auth_bp
 from routes.candidate_self_routes import candidate_self_bp
+from routes.job_application_routes import job_application_bp
+from routes.candidate_dashboard_routes import candidate_dashboard_bp
+from routes.saved_job_routes import saved_job_bp
+
+
 app = Flask(__name__)
 CORS(app)
 
@@ -28,6 +33,10 @@ app.register_blueprint(notification_bp)
 app.register_blueprint(lead_bp)
 app.register_blueprint(candidate_auth_bp)
 app.register_blueprint(candidate_self_bp)
+app.register_blueprint(job_application_bp)
+app.register_blueprint(candidate_dashboard_bp)
+app.register_blueprint(saved_job_bp)
+
 @app.route("/")
 def health():
     return "Auth API Running ye dekh babbe"
