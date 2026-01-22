@@ -14,7 +14,6 @@ saved_job_bp = Blueprint(
     url_prefix="/api/candidate/jobs"
 )
 
-# ================= SAVE JOB =================
 @saved_job_bp.route("/<job_id>/save", methods=["POST"])
 @auth_required(allowed_roles=["candidate"])
 def save_job_route(job_id):
@@ -32,7 +31,6 @@ def save_job_route(job_id):
     return jsonify({"message": "Job saved successfully"}), 201
 
 
-# ================= REMOVE SAVED JOB =================
 @saved_job_bp.route("/<job_id>/unsave", methods=["DELETE"])
 @auth_required(allowed_roles=["candidate"])
 def unsave_job_route(job_id):
@@ -43,7 +41,6 @@ def unsave_job_route(job_id):
     return jsonify({"message": "Job removed from saved list"}), 200
 
 
-# ================= GET SAVED JOBS =================
 @saved_job_bp.route("/saved", methods=["GET"])
 @auth_required(allowed_roles=["candidate"])
 def get_saved_jobs_route():

@@ -17,7 +17,6 @@ from routes.job_application_routes import job_application_bp
 from routes.candidate_dashboard_routes import candidate_dashboard_bp
 from routes.saved_job_routes import saved_job_bp
 
-
 app = Flask(__name__)
 CORS(app)
 
