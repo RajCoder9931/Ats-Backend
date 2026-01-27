@@ -12,9 +12,7 @@ candidate_self_bp = Blueprint(
     url_prefix="/api/candidate"
 )
 
-# ==========================
-# Get Own Profile
-# ==========================
+# Own candidate profile section 
 @candidate_self_bp.route("/me", methods=["GET"])
 @auth_required(allowed_roles=["candidate"])
 def get_my_profile():
@@ -29,9 +27,7 @@ def get_my_profile():
     return jsonify(candidate), 200
 
 
-# ==========================
-# Update Own Profile (FULL PROFILE)
-# ==========================
+# Update the full profile of candidate 
 @candidate_self_bp.route("/me", methods=["PUT"])
 @auth_required(allowed_roles=["candidate"])
 def update_my_profile():
@@ -95,9 +91,7 @@ def update_my_profile():
     return jsonify(candidate), 200
 
 
-# ==========================
 # Change Password
-# ==========================
 @candidate_self_bp.route("/change-password", methods=["PUT"])
 @auth_required(allowed_roles=["candidate"])
 def change_candidate_password():

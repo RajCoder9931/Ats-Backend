@@ -1,12 +1,10 @@
 import jwt
 import datetime
-from config import JWT_SECRET, ACCESS_TOKEN_MINUTES, REFRESH_TOKEN_DAYS
+from config import JWT_SECRET, ACCESS_TOKEN_MINUTES 
 
 
 def generate_access_token(user):
-    """
-    Used by ADMIN / SUPER ADMIN
-    """
+   
     payload = {
         "id": str(user["_id"]),
         "email": user["email"],
@@ -19,25 +17,9 @@ def generate_access_token(user):
     return jwt.encode(payload, JWT_SECRET, algorithm="HS256")
 
 
-def generate_refresh_token(user):
-    """
-    ADMIN ONLY
-    """
-    payload = {
-        "id": str(user["_id"]),
-        "role": user["role"],
-        "type": "refresh",
-        "exp": datetime.datetime.utcnow()
-        + datetime.timedelta(days=REFRESH_TOKEN_DAYS),
-    }
-
-    return jwt.encode(payload, JWT_SECRET, algorithm="HS256")
-
 
 def generate_candidate_token(user):
-    """
-    CANDIDATE ONLY (NO REFRESH TOKEN)
-    """
+    
     payload = {
         "id": str(user["_id"]),
         "email": user["email"],

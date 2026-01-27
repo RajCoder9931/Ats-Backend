@@ -14,7 +14,7 @@ job_application_bp = Blueprint(
 )
 
 
-# ================= APPLY TO JOB =================
+# Apply for Job
 @job_application_bp.route("/jobs/<job_id>/apply", methods=["POST"])
 @auth_required(allowed_roles=["candidate"])
 def apply_job(job_id):
@@ -35,7 +35,7 @@ def apply_job(job_id):
     }), 201
 
 
-# ================= GET APPLIED JOBS =================
+# Get The applied Job By candidate
 @job_application_bp.route("/candidate/applied-jobs", methods=["GET"])
 @auth_required(allowed_roles=["candidate"])
 def get_applied_jobs():

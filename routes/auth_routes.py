@@ -1,20 +1,39 @@
 from flask import Blueprint, request, jsonify
-from models.user_model import (
-    find_by_email,
-    create_user,
-    save_refresh_token,
-    find_by_refresh_token,
-    remove_refresh_token
-)
+from functools import wraps
+from models.user_model import find_by_email, create_user
 from utils.password_utils import hash_password, check_password
-from utils.jwt_utils import (
-    generate_access_token,
-    generate_refresh_token,
-    decode_token
-)
+from utils.jwt_utils import generate_access_token, decode_token
 
 auth_bp = Blueprint("auth", __name__, url_prefix="/api/auth")
 
+def token_required(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        token = None
+
+        if "Authorization" in request.headers:
+            auth_header = request.headers.get("Authorization")
+            if auth_header.startswith("Bearer "):
+                token = auth_header.split(" ")[1]
+
+        if not token:
+            return jsonify({"message": "Token is missing"}), 401
+
+        try:
+            payload = decode_token(token)
+
+            if payload.get("type") != "access":
+                return jsonify({"message": "Invalid token type"}), 401
+
+            request.user = payload
+        except Exception as e:
+            return jsonify({"message": "Invalid or expired token"}), 401
+
+        return f(*args, **kwargs)
+
+    return decorated
+
+# Signup
 @auth_bp.route("/signup", methods=["POST"])
 def signup():
     data = request.json
@@ -40,70 +59,60 @@ def signup():
     user["_id"] = result.inserted_id
 
     access_token = generate_access_token(user)
-    refresh_token = generate_refresh_token(user)
-    save_refresh_token(user["_id"], refresh_token)
 
     return jsonify({
         "access_token": access_token,
-        "refresh_token": refresh_token,
         "user": {
+            "id": str(user["_id"]),
             "name": name,
             "email": email,
             "role": role
         }
     }), 201
 
+
+# Login 
 @auth_bp.route("/login", methods=["POST"])
 def login():
     data = request.json
     email = data.get("email")
     password = data.get("password")
+    role = data.get("role")  # optional role validation
+
+    if not all([email, password]):
+        return jsonify({"message": "Email and password required"}), 400
 
     user = find_by_email(email)
+
     if not user or not check_password(password, user["password"]):
         return jsonify({"message": "Invalid email or password"}), 401
 
+    # role check
+    if role and user["role"] != role:
+        return jsonify({"message": "Invalid role for this user"}), 403
+
     access_token = generate_access_token(user)
-    refresh_token = generate_refresh_token(user)
-    save_refresh_token(user["_id"], refresh_token)
 
     return jsonify({
         "access_token": access_token,
-        "refresh_token": refresh_token,
         "user": {
+            "id": str(user["_id"]),
             "name": user["name"],
             "email": user["email"],
             "role": user["role"]
         }
-    })
+    }), 200
 
-@auth_bp.route("/refresh", methods=["POST"])
-def refresh():
-    data = request.json
-    token = data.get("refresh_token")
-
-    if not token:
-        return jsonify({"message": "Refresh token required"}), 400
-
-    try:
-        payload = decode_token(token)
-        if payload.get("type") != "refresh":
-            return jsonify({"message": "Invalid token"}), 401
-    except:
-        return jsonify({"message": "Invalid or expired refresh token"}), 401
-
-    user = find_by_refresh_token(token)
-    if not user:
-        return jsonify({"message": "Token revoked"}), 401
-
-    new_access = generate_access_token(user)
-    return jsonify({"access_token": new_access})
-
+# Logout
 @auth_bp.route("/logout", methods=["POST"])
 def logout():
-    data = request.json
-    token = data.get("refresh_token")
-    user = find_by_refresh_token(token)
-    if user:
-        remove_refresh_token(user["_id"])
-    return jsonify({"message": "Logged out"})
+    return jsonify({"message": "Logged out successfully"}), 200
+
+# Profile
+@auth_bp.route("/profile", methods=["GET"])
+@token_required
+def profile():
+    return jsonify({
+        "message": "Profile accessed successfully",
+        "user": request.user
+    })

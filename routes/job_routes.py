@@ -9,7 +9,7 @@ from models.job_model import (
 job_bp = Blueprint("jobs", __name__, url_prefix="/api/jobs")
 
 
-# ================= CREATE JOB (ADMIN ONLY) =================
+# Create Job (Only Admin, recriters)
 @job_bp.route("", methods=["POST"])
 @auth_required(allowed_roles=["admin", "super_admin"])
 def add_job():
@@ -50,7 +50,7 @@ def add_job():
     return jsonify(saved), 201
 
 
-# ================= FETCH JOBS (ADMIN + CANDIDATE) =================
+# Fetch the Jobs (Admin and Candidate role using own tokens)
 @job_bp.route("", methods=["GET"])
 @auth_required(allowed_roles=["admin", "super_admin", "candidate"])
 def fetch_jobs():

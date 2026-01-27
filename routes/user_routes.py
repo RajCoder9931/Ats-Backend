@@ -9,7 +9,6 @@ from utils.password_utils import check_password
 
 user_bp = Blueprint("users", __name__, url_prefix="/api/users")
 
-
 @user_bp.route("/me", methods=["GET"])
 @auth_required(allowed_roles=["admin", "super_admin"])
 def get_me():

@@ -12,9 +12,7 @@ candidate_auth_bp = Blueprint(
     url_prefix="/api/candidate/auth"
 )
 
-# ==========================
-# Candidate Signup
-# ==========================
+
 @candidate_auth_bp.route("/signup", methods=["POST"])
 def candidate_signup():
     data = request.json
@@ -44,9 +42,6 @@ def candidate_signup():
     return jsonify({"message": "Candidate registered successfully"}), 201
 
 
-# ==========================
-# Candidate Login
-# ==========================
 @candidate_auth_bp.route("/login", methods=["POST"])
 def candidate_login():
     data = request.json
