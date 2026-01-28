@@ -9,16 +9,53 @@ leads = db.leads
 
 
 def create_lead(data):
-    data["createdAt"] = datetime.datetime.utcnow().isoformat()
-    result = leads.insert_one(data)
-    data["_id"] = str(result.inserted_id)
-    return data
+    now = datetime.datetime.utcnow()
+
+    lead = {
+        "companyName": data.get("companyName"),
+        "industry": data.get("industry"),
+        "companySize": data.get("companySize"),
+        "website": data.get("website"),
+
+        "location": {
+            "city": data.get("city"),
+            "state": data.get("state"),
+            "country": data.get("country")
+        },
+
+        "contactPerson": {
+            "name": data.get("contactName"),
+            "email": data.get("contactEmail"),
+            "phone": data.get("contactPhone"),
+            "designation": data.get("contactDesignation")
+        },
+
+        "leadSource": data.get("leadSource"),
+        "leadStatus": data.get("leadStatus", "New"),
+        "priority": data.get("priority", "Medium"),
+        "expectedHiring": data.get("expectedHiring", False),
+        "remarks": data.get("remarks"),
+
+        "isActive": True,
+        "createdBy": data.get("createdBy"),
+
+        "createdAt": now,
+        "updatedAt": now,
+        "lastContactedAt": None
+    }
+
+    result = leads.insert_one(lead)
+    lead["_id"] = str(result.inserted_id)
+    return lead
 
 
-def get_all_leads(user_id):
-    cursor = leads.find({"createdBy": user_id}).sort("createdAt", -1)
+
+def get_active_leads():
+    cursor = leads.find({
+        "isActive": True
+    }).sort("createdAt", -1)
+
     result = []
-
     for doc in cursor:
         doc["_id"] = str(doc["_id"])
         result.append(doc)
@@ -26,12 +63,25 @@ def get_all_leads(user_id):
     return result
 
 
- 
-def get_lead_by_id(lead_id, user_id):
+
+def get_inactive_leads():
+    cursor = leads.find({
+        "isActive": False
+    }).sort("updatedAt", -1)
+
+    result = []
+    for doc in cursor:
+        doc["_id"] = str(doc["_id"])
+        result.append(doc)
+
+    return result
+
+
+
+def get_lead_by_id(lead_id):
     try:
         lead = leads.find_one({
-            "_id": ObjectId(lead_id),
-            "createdBy": user_id
+            "_id": ObjectId(lead_id)
         })
 
         if not lead:
@@ -42,3 +92,27 @@ def get_lead_by_id(lead_id, user_id):
 
     except Exception:
         return None
+
+
+
+def deactivate_lead(lead_id):
+    result = leads.update_one(
+        {"_id": ObjectId(lead_id)},
+        {"$set": {
+            "isActive": False,
+            "updatedAt": datetime.datetime.utcnow()
+        }}
+    )
+    return result.modified_count > 0
+
+
+
+def activate_lead(lead_id):
+    result = leads.update_one(
+        {"_id": ObjectId(lead_id)},
+        {"$set": {
+            "isActive": True,
+            "updatedAt": datetime.datetime.utcnow()
+        }}
+    )
+    return result.modified_count > 0

@@ -11,6 +11,12 @@ from routes.dashboard_routes import dashboard_bp
 from routes.pipeline_routes import pipeline_bp
 from routes.notification_routes import notification_bp
 from routes.lead_routes import lead_bp
+from routes.contact_log_routes import contact_log_bp
+from routes.opportunity_routes import opportunity_bp
+from routes.job_posting_routes import job_posting_bp
+from routes.candidate_pipeline_routes import candidate_pipeline_bp
+from routes.interview_feedback_routes import interview_feedback_bp
+from routes.dashboard_stats_routes import dashboard_stats_bp
 from routes.candidate_auth_routes import candidate_auth_bp
 from routes.candidate_self_routes import candidate_self_bp
 from routes.job_application_routes import job_application_bp
@@ -30,6 +36,12 @@ app.register_blueprint(dashboard_bp)
 app.register_blueprint(pipeline_bp)
 app.register_blueprint(notification_bp)
 app.register_blueprint(lead_bp)
+app.register_blueprint(contact_log_bp)
+app.register_blueprint(opportunity_bp)
+app.register_blueprint(job_posting_bp)
+app.register_blueprint(interview_feedback_bp)
+app.register_blueprint(candidate_pipeline_bp)
+app.register_blueprint(dashboard_stats_bp)
 app.register_blueprint(candidate_auth_bp)
 app.register_blueprint(candidate_self_bp)
 app.register_blueprint(job_application_bp)

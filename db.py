@@ -3,4 +3,5 @@ from config import MONGO_URI
 
 client = MongoClient(MONGO_URI)
 
-db = client.ERPApp    
+db = client.ERPApp
+

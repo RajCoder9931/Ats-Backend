@@ -10,7 +10,7 @@ from utils.password_utils import check_password
 user_bp = Blueprint("users", __name__, url_prefix="/api/users")
 
 @user_bp.route("/me", methods=["GET"])
-@auth_required(allowed_roles=["admin", "super_admin"])
+@auth_required(allowed_roles=["admin", "super_admin", "recruiter"])
 def get_me():
     user = find_by_id(request.user["id"])
 
@@ -25,7 +25,7 @@ def get_me():
 
 
 @user_bp.route("/me", methods=["PUT"])
-@auth_required(allowed_roles=["admin", "super_admin"])
+@auth_required(allowed_roles=["admin", "super_admin", "recruiter"])
 def update_profile():
     data = request.json
     allowed_fields = ["name", "email", "phone"]

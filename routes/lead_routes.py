@@ -1,63 +1,75 @@
 from flask import Blueprint, request, jsonify
 from middleware.auth_middleware import auth_required
-from models.lead_model import create_lead, get_all_leads
-from models.job_model import get_job_by_id
-from models.candidate_model import get_candidate_by_id
-from models.lead_model import create_lead, get_all_leads, get_lead_by_id
+from models.lead_model import (
+    create_lead,
+    get_active_leads,
+    get_inactive_leads,
+    get_lead_by_id,
+    deactivate_lead,
+    activate_lead
+)
 
 lead_bp = Blueprint("leads", __name__, url_prefix="/api/leads")
 
 
-
 @lead_bp.route("", methods=["POST"])
-@auth_required(allowed_roles=["admin", "super_admin"])
+@auth_required(allowed_roles=["admin", "super_admin", "recruiter"])
 def add_lead():
     data = request.get_json()
 
-    required = ["name", "stage"]
-    for field in required:
+    required_fields = ["companyName", "contactName", "contactEmail"]
+    for field in required_fields:
         if not data.get(field):
             return jsonify({"message": "{} is required".format(field)}), 400
 
-    job = get_job_by_id(data.get("jobId")) if data.get("jobId") else None
-    candidate = get_candidate_by_id(data.get("candidateId")) if data.get("candidateId") else None
+    data["createdBy"] = request.user.get("id")
 
-    lead = {
-        "name": data.get("name"),
-        "stage": data.get("stage"),
-        "expectedValue": data.get("expectedValue"),
-        "followUpDate": data.get("followUpDate"),
+    lead = create_lead(data)
+    return jsonify(lead), 201
 
-        "companyId": data.get("companyId"),
-        "companyName": data.get("companyName"),
 
-        "contactId": data.get("contactId"),
-        "contactName": data.get("contactName"),
+@lead_bp.route("/active", methods=["GET"])
+@auth_required(allowed_roles=["admin", "super_admin", "recruiter"])
+def fetch_active_leads():
+    leads = get_active_leads()
+    return jsonify(leads), 200
 
-        "jobId": data.get("jobId"),
-        "jobTitle": job.get("title") if job else None,
 
-        "candidateId": data.get("candidateId"),
-        "candidateName": candidate.get("name") if candidate else None,
+@lead_bp.route("/inactive", methods=["GET"])
+@auth_required(allowed_roles=["admin", "super_admin", "recruiter"])
+def fetch_inactive_leads():
+    leads = get_inactive_leads()
+    return jsonify(leads), 200
 
-        "createdBy": request.user.get("id")
-    }
-
-    saved = create_lead(lead)
-    return jsonify(saved), 201
- 
-@lead_bp.route("", methods=["GET"])
-@auth_required(allowed_roles=["admin", "super_admin"])
-def fetch_leads():
-    data = get_all_leads(request.user.get("id"))
-    return jsonify(data), 200
 
 @lead_bp.route("/<lead_id>", methods=["GET"])
-@auth_required(allowed_roles=["admin", "super_admin"])
+@auth_required(allowed_roles=["admin", "super_admin", "recruiter"])
 def fetch_lead_by_id(lead_id):
-    lead = get_lead_by_id(lead_id, request.user.get("id"))
+    lead = get_lead_by_id(lead_id)
 
     if not lead:
         return jsonify({"message": "Lead not found"}), 404
 
     return jsonify(lead), 200
+
+
+@lead_bp.route("/deactivate/<lead_id>", methods=["PUT"])
+@auth_required(allowed_roles=["admin", "super_admin", "recruiter"])
+def deactivate(lead_id):
+    success = deactivate_lead(lead_id)
+
+    if not success:
+        return jsonify({"message": "Lead not found"}), 404
+
+    return jsonify({"message": "Lead deactivated successfully"}), 200
+
+
+@lead_bp.route("/activate/<lead_id>", methods=["PUT"])
+@auth_required(allowed_roles=["admin", "super_admin", "recruiter"])
+def activate(lead_id):
+    success = activate_lead(lead_id)
+
+    if not success:
+        return jsonify({"message": "Lead not found"}), 404
+
+    return jsonify({"message": "Lead activated successfully"}), 200
