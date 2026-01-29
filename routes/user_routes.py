@@ -49,7 +49,7 @@ def update_profile():
 
 
 @user_bp.route("/change-password", methods=["PUT"])
-@auth_required(allowed_roles=["admin", "super_admin"])
+@auth_required(allowed_roles=["admin", "super_admin", "recruiter"])
 def change_password():
     data = request.json
 

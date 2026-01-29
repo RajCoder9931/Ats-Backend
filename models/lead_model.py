@@ -13,6 +13,10 @@ def create_lead(data):
 
     lead = {
         "companyName": data.get("companyName"),
+        "companyOwnerName": data.get("companyOwnerName"),
+        "companyEmail": data.get("companyEmail"),
+        "companyPhone": data.get("companyPhone"),
+
         "industry": data.get("industry"),
         "companySize": data.get("companySize"),
         "website": data.get("website"),
@@ -49,40 +53,31 @@ def create_lead(data):
     return lead
 
 
-
 def get_active_leads():
-    cursor = leads.find({
-        "isActive": True
-    }).sort("createdAt", -1)
-
+    cursor = leads.find({"isActive": True}).sort("createdAt", -1)
     result = []
+
     for doc in cursor:
         doc["_id"] = str(doc["_id"])
         result.append(doc)
 
     return result
-
 
 
 def get_inactive_leads():
-    cursor = leads.find({
-        "isActive": False
-    }).sort("updatedAt", -1)
-
+    cursor = leads.find({"isActive": False}).sort("updatedAt", -1)
     result = []
+
     for doc in cursor:
         doc["_id"] = str(doc["_id"])
         result.append(doc)
 
     return result
-
 
 
 def get_lead_by_id(lead_id):
     try:
-        lead = leads.find_one({
-            "_id": ObjectId(lead_id)
-        })
+        lead = leads.find_one({"_id": ObjectId(lead_id)})
 
         if not lead:
             return None
@@ -92,7 +87,6 @@ def get_lead_by_id(lead_id):
 
     except Exception:
         return None
-
 
 
 def deactivate_lead(lead_id):
@@ -106,7 +100,6 @@ def deactivate_lead(lead_id):
     return result.modified_count > 0
 
 
-
 def activate_lead(lead_id):
     result = leads.update_one(
         {"_id": ObjectId(lead_id)},
@@ -115,4 +108,46 @@ def activate_lead(lead_id):
             "updatedAt": datetime.datetime.utcnow()
         }}
     )
+    return result.modified_count > 0
+
+
+def update_lead(lead_id, data):
+    update_data = {
+        "companyName": data.get("companyName"),
+        "companyOwnerName": data.get("companyOwnerName"),
+        "companyEmail": data.get("companyEmail"),
+        "companyPhone": data.get("companyPhone"),
+
+        "industry": data.get("industry"),
+        "companySize": data.get("companySize"),
+        "website": data.get("website"),
+
+        "location.city": data.get("city"),
+        "location.state": data.get("state"),
+        "location.country": data.get("country"),
+
+        "contactPerson.name": data.get("contactName"),
+        "contactPerson.email": data.get("contactEmail"),
+        "contactPerson.phone": data.get("contactPhone"),
+        "contactPerson.designation": data.get("contactDesignation"),
+
+        "leadSource": data.get("leadSource"),
+        "leadStatus": data.get("leadStatus"),
+        "priority": data.get("priority"),
+        "expectedHiring": data.get("expectedHiring"),
+        "remarks": data.get("remarks"),
+
+        "updatedAt": datetime.datetime.utcnow()
+    }
+
+    clean_data = {}
+    for key in update_data:
+        if update_data[key] is not None:
+            clean_data[key] = update_data[key]
+
+    result = leads.update_one(
+        {"_id": ObjectId(lead_id)},
+        {"$set": clean_data}
+    )
+
     return result.modified_count > 0

@@ -11,6 +11,7 @@ from routes.dashboard_routes import dashboard_bp
 from routes.pipeline_routes import pipeline_bp
 from routes.notification_routes import notification_bp
 from routes.lead_routes import lead_bp
+from routes.contract_routes import contract_bp
 from routes.contact_log_routes import contact_log_bp
 from routes.opportunity_routes import opportunity_bp
 from routes.job_posting_routes import job_posting_bp
@@ -36,6 +37,7 @@ app.register_blueprint(dashboard_bp)
 app.register_blueprint(pipeline_bp)
 app.register_blueprint(notification_bp)
 app.register_blueprint(lead_bp)
+app.register_blueprint(contract_bp)
 app.register_blueprint(contact_log_bp)
 app.register_blueprint(opportunity_bp)
 app.register_blueprint(job_posting_bp)

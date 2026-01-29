@@ -17,10 +17,14 @@ contact_log_bp = Blueprint("contact_logs", __name__, url_prefix="/api/contact-lo
 def add_contact_log():
     data = request.get_json()
 
-    required_fields = ["leadId", "communicationType", "subject"]
+    required_fields = ["communicationType", "subject"]
     for field in required_fields:
         if not data.get(field):
             return jsonify({"message": "{} is required".format(field)}), 400
+
+    # Must have either leadId or contractId
+    if not data.get("leadId") and not data.get("contractId"):
+        return jsonify({"message": "leadId or contractId is required"}), 400
 
     data["createdBy"] = request.user.get("id")
 

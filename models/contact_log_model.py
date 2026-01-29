@@ -12,7 +12,8 @@ def create_contact_log(data):
     now = datetime.datetime.utcnow()
 
     log = {
-        "leadId": ObjectId(data.get("leadId")),
+        "leadId": ObjectId(data.get("leadId")) if data.get("leadId") else None,
+        "contractId": ObjectId(data.get("contractId")) if data.get("contractId") else None,
 
         "contactPerson": {
             "name": data.get("contactName"),
@@ -36,36 +37,40 @@ def create_contact_log(data):
 
     result = contact_logs.insert_one(log)
 
-    
     log["_id"] = str(result.inserted_id)
-    log["leadId"] = str(log["leadId"])
+    if log["leadId"]:
+        log["leadId"] = str(log["leadId"])
+    if log["contractId"]:
+        log["contractId"] = str(log["contractId"])
 
     return log
 
 
 def get_active_logs():
-    cursor = contact_logs.find({
-        "isActive": True
-    }).sort("createdAt", -1)
+    cursor = contact_logs.find({"isActive": True}).sort("createdAt", -1)
 
     result = []
     for doc in cursor:
         doc["_id"] = str(doc["_id"])
-        doc["leadId"] = str(doc["leadId"])
+        if doc.get("leadId"):
+            doc["leadId"] = str(doc["leadId"])
+        if doc.get("contractId"):
+            doc["contractId"] = str(doc["contractId"])
         result.append(doc)
 
     return result
 
 
 def get_inactive_logs():
-    cursor = contact_logs.find({
-        "isActive": False
-    }).sort("updatedAt", -1)
+    cursor = contact_logs.find({"isActive": False}).sort("updatedAt", -1)
 
     result = []
     for doc in cursor:
         doc["_id"] = str(doc["_id"])
-        doc["leadId"] = str(doc["leadId"])
+        if doc.get("leadId"):
+            doc["leadId"] = str(doc["leadId"])
+        if doc.get("contractId"):
+            doc["contractId"] = str(doc["contractId"])
         result.append(doc)
 
     return result
@@ -73,15 +78,17 @@ def get_inactive_logs():
 
 def get_log_by_id(log_id):
     try:
-        log = contact_logs.find_one({
-            "_id": ObjectId(log_id)
-        })
+        log = contact_logs.find_one({"_id": ObjectId(log_id)})
 
         if not log:
             return None
 
         log["_id"] = str(log["_id"])
-        log["leadId"] = str(log["leadId"])
+        if log.get("leadId"):
+            log["leadId"] = str(log["leadId"])
+        if log.get("contractId"):
+            log["contractId"] = str(log["contractId"])
+
         return log
 
     except Exception:
