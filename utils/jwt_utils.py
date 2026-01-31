@@ -4,7 +4,7 @@ from config import JWT_SECRET, ACCESS_TOKEN_MINUTES
 from jwt import ExpiredSignatureError, InvalidTokenError
 
 
-def generate_access_token(user):
+def generate_access_token(user: dict) -> str:
     payload = {
         "id": str(user["_id"]),
         "email": user.get("email"),
@@ -16,14 +16,14 @@ def generate_access_token(user):
 
     token = jwt.encode(payload, JWT_SECRET, algorithm="HS256")
 
-    # PyJWT >= 2.0 returns str, older returns bytes
+    # PyJWT >= 2 returns str, older returns bytes
     if isinstance(token, bytes):
         token = token.decode("utf-8")
 
     return token
 
 
-def generate_candidate_token(user):
+def generate_candidate_token(user: dict) -> str:
     payload = {
         "id": str(user["_id"]),
         "email": user.get("email"),
@@ -41,7 +41,7 @@ def generate_candidate_token(user):
     return token
 
 
-def decode_token(token):
+def decode_token(token: str) -> dict:
     try:
         payload = jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
         return payload
