@@ -1,6 +1,7 @@
 import os
 from flask import Flask
 from flask_cors import CORS
+import os
 
 from routes.auth_routes import auth_bp
 from routes.candidate_routes import candidate_bp
@@ -64,5 +65,6 @@ def create_app():
 app = create_app()
 
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port, debug=False)
+    app.run(debug=True)
+
+
