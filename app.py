@@ -1,7 +1,6 @@
 import os
 from flask import Flask
 from flask_cors import CORS
-import os
 
 from routes.auth_routes import auth_bp
 from routes.candidate_routes import candidate_bp
@@ -31,7 +30,6 @@ def create_app():
     app = Flask(__name__)
     CORS(app)
 
-    # Register Blueprints
     app.register_blueprint(auth_bp)
     app.register_blueprint(candidate_bp)
     app.register_blueprint(job_bp)
@@ -57,7 +55,7 @@ def create_app():
 
     @app.route("/")
     def health():
-        return {"status": "ok", "message": "ATS Backend Running 🚀"}
+        return {"status": "ok", "message": "ATS Backend Running"}
 
     return app
 
@@ -65,6 +63,5 @@ def create_app():
 app = create_app()
 
 if __name__ == "__main__":
-    app.run(debug=True)
-
-
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port, debug=False)
