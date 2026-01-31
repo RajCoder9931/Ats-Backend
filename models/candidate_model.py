@@ -8,7 +8,7 @@ db = client.ERPApp
 candidates = db.candidates
 
 
-def create_candidate_profile(data):
+def create_candidate(data):
     data["createdAt"] = datetime.datetime.utcnow().isoformat()
     result = candidates.insert_one(data)
     data["_id"] = str(result.inserted_id)
@@ -28,7 +28,11 @@ def get_all_candidates():
 
 def get_candidate_by_id(candidate_id):
     try:
-        return candidates.find_one({"_id": ObjectId(candidate_id)})
+        candidate = candidates.find_one({"_id": ObjectId(candidate_id)})
+        if not candidate:
+            return None
+        candidate["_id"] = str(candidate["_id"])
+        return candidate
     except Exception:
         return None
 
@@ -45,23 +49,12 @@ def update_candidate_by_id(candidate_id, data):
         update_fields = {}
 
         allowed_fields = [
-            "name",
-            "email",
-            "phone",
-            "location",
-            "country",
-            "state",
-            "locality",
-            "dateOfBirth",
-            "gender",
-            "skills",
-            "experience",
-            "education",
-            "currentCompany",
-            "currentPosition",
-            "notes",
-            "status",   
-            "stage"
+            "name", "email", "phone", "location",
+            "country", "state", "locality",
+            "dateOfBirth", "gender",
+            "skills", "experience", "education",
+            "currentCompany", "currentPosition",
+            "notes", "status", "stage"
         ]
 
         for field in allowed_fields:
@@ -78,7 +71,10 @@ def update_candidate_by_id(candidate_id, data):
             {"$set": update_fields}
         )
 
-        return candidates.find_one({"_id": ObjectId(candidate_id)})
+        candidate = candidates.find_one({"_id": ObjectId(candidate_id)})
+        if candidate:
+            candidate["_id"] = str(candidate["_id"])
+        return candidate
 
     except Exception as e:
         print("Update Candidate Error:", e)
