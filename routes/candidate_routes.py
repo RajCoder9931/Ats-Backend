@@ -6,6 +6,7 @@ from models.candidate_model import (
     update_candidate_by_id,
     get_candidate_by_id
 )
+
 from models.notification_model import create_notification
 
 candidate_bp = Blueprint(
