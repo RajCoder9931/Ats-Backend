@@ -1,5 +1,6 @@
 from flask import Flask
 from flask_cors import CORS
+import os
 
 from routes.auth_routes import auth_bp
 from routes.candidate_routes import candidate_bp
@@ -55,6 +56,5 @@ def health():
     return "Auth API Running ye dekh babbe"
 
 if __name__ == "__main__":
-    app.run(debug=True)
-
-
+    port = int(os.environ.get("PORT", 10000))
+    app.run(host="0.0.0.0", port=port, debug=False)
