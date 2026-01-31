@@ -6,6 +6,7 @@ from models.company_model import (
     get_company_by_id
 )
 
+
 company_bp = Blueprint(
     "companies",
     __name__,
