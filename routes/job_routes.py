@@ -6,17 +6,20 @@ from models.job_model import (
     get_jobs_for_candidate
 )
 
-job_bp = Blueprint("jobs", __name__, url_prefix="/api/jobs")
+job_bp = Blueprint(
+    "jobs",
+    __name__,
+    url_prefix="/api/jobs"
+)
 
 
-# Create Job (Only Admin, recriters)
 @job_bp.route("", methods=["POST"])
 @auth_required(allowed_roles=["admin", "super_admin"])
 def add_job():
     data = request.get_json()
 
-    if not data:
-        return jsonify({"message": "Invalid JSON body"}), 400
+    if not isinstance(data, dict):
+        return jsonify({"message": "Invalid or missing JSON body"}), 400
 
     required_fields = [
         "title",
@@ -30,9 +33,7 @@ def add_job():
 
     for field in required_fields:
         if not data.get(field):
-            return jsonify({
-                "message": "{} is required".format(field)
-            }), 400
+            return jsonify({"message": f"{field} is required"}), 400
 
     job = {
         "title": data.get("title"),
@@ -47,14 +48,22 @@ def add_job():
     }
 
     saved = create_job(job)
+
+    if not saved:
+        return jsonify({"message": "Failed to create job"}), 500
+
     return jsonify(saved), 201
 
 
-# Fetch the Jobs (Admin and Candidate role using own tokens)
+
 @job_bp.route("", methods=["GET"])
 @auth_required(allowed_roles=["admin", "super_admin", "candidate"])
 def fetch_jobs():
-    if request.user["role"] == "candidate":
-        return jsonify(get_jobs_for_candidate()), 200
+    role = request.user.get("role")
 
-    return jsonify(get_all_jobs()), 200
+    if role == "candidate":
+        jobs = get_jobs_for_candidate()
+    else:
+        jobs = get_all_jobs()
+
+    return jsonify(jobs), 200

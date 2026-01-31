@@ -13,8 +13,9 @@ candidate_self_bp = Blueprint(
     url_prefix="/api/candidate"
 )
 
+
 # ==========================
-# Serializer (fix ObjectId issue)
+# Serializer
 # ==========================
 def serialize(obj):
     if isinstance(obj, list):
@@ -44,12 +45,15 @@ def get_my_profile():
 
 
 # ==========================
-# UPDATE FULL PROFILE (without exp & edu)
+# UPDATE PROFILE
 # ==========================
 @candidate_self_bp.route("/me", methods=["PUT"])
 @auth_required(allowed_roles=["candidate"])
 def update_my_profile():
-    data = request.json
+    data = request.get_json()
+
+    if not isinstance(data, dict):
+        return jsonify({"message": "Invalid JSON body"}), 400
 
     allowed_fields = [
         "name", "phone", "dateOfBirth", "gender",
@@ -70,6 +74,9 @@ def update_my_profile():
 
     candidate = update_candidate_profile(request.user["id"], update_data)
 
+    if not candidate:
+        return jsonify({"message": "Candidate not found"}), 404
+
     candidate = serialize(candidate)
     candidate.pop("password", None)
 
@@ -82,9 +89,9 @@ def update_my_profile():
 @candidate_self_bp.route("/experience", methods=["POST"])
 @auth_required(allowed_roles=["candidate"])
 def add_experience():
-    data = request.json
+    data = request.get_json()
 
-    if not data.get("company") or not data.get("role"):
+    if not data or not data.get("company") or not data.get("role"):
         return jsonify({"message": "Company and role required"}), 400
 
     experience = {
@@ -97,6 +104,9 @@ def add_experience():
     }
 
     candidate = find_candidate_profile_by_id(request.user["id"])
+    if not candidate:
+        return jsonify({"message": "Candidate not found"}), 404
+
     experiences = candidate.get("experience", [])
     experiences.append(experience)
 
@@ -108,8 +118,11 @@ def add_experience():
 @candidate_self_bp.route("/experience/<exp_id>", methods=["PUT"])
 @auth_required(allowed_roles=["candidate"])
 def update_experience(exp_id):
-    data = request.json
+    data = request.get_json()
     candidate = find_candidate_profile_by_id(request.user["id"])
+
+    if not candidate:
+        return jsonify({"message": "Candidate not found"}), 404
 
     experiences = candidate.get("experience", [])
     found = False
@@ -132,11 +145,13 @@ def update_experience(exp_id):
     return jsonify({"message": "Experience updated successfully"}), 200
 
 
-
 @candidate_self_bp.route("/experience/<exp_id>", methods=["DELETE"])
 @auth_required(allowed_roles=["candidate"])
 def delete_experience(exp_id):
     candidate = find_candidate_profile_by_id(request.user["id"])
+
+    if not candidate:
+        return jsonify({"message": "Candidate not found"}), 404
 
     experiences = candidate.get("experience", [])
     new_experiences = [e for e in experiences if str(e["_id"]) != exp_id]
@@ -152,9 +167,9 @@ def delete_experience(exp_id):
 @candidate_self_bp.route("/education", methods=["POST"])
 @auth_required(allowed_roles=["candidate"])
 def add_education():
-    data = request.json
+    data = request.get_json()
 
-    if not data.get("institution") or not data.get("degree"):
+    if not data or not data.get("institution") or not data.get("degree"):
         return jsonify({"message": "Institution and degree required"}), 400
 
     education = {
@@ -168,6 +183,9 @@ def add_education():
     }
 
     candidate = find_candidate_profile_by_id(request.user["id"])
+    if not candidate:
+        return jsonify({"message": "Candidate not found"}), 404
+
     education_list = candidate.get("education", [])
     education_list.append(education)
 
@@ -179,8 +197,11 @@ def add_education():
 @candidate_self_bp.route("/education/<edu_id>", methods=["PUT"])
 @auth_required(allowed_roles=["candidate"])
 def update_education(edu_id):
-    data = request.json
+    data = request.get_json()
     candidate = find_candidate_profile_by_id(request.user["id"])
+
+    if not candidate:
+        return jsonify({"message": "Candidate not found"}), 404
 
     education_list = candidate.get("education", [])
     found = False
@@ -204,11 +225,13 @@ def update_education(edu_id):
     return jsonify({"message": "Education updated successfully"}), 200
 
 
-
 @candidate_self_bp.route("/education/<edu_id>", methods=["DELETE"])
 @auth_required(allowed_roles=["candidate"])
 def delete_education(edu_id):
     candidate = find_candidate_profile_by_id(request.user["id"])
+
+    if not candidate:
+        return jsonify({"message": "Candidate not found"}), 404
 
     education_list = candidate.get("education", [])
     new_education = [e for e in education_list if str(e["_id"]) != edu_id]
@@ -224,7 +247,10 @@ def delete_education(edu_id):
 @candidate_self_bp.route("/change-password", methods=["PUT"])
 @auth_required(allowed_roles=["candidate"])
 def change_candidate_password():
-    data = request.json
+    data = request.get_json()
+
+    if not data:
+        return jsonify({"message": "Invalid JSON body"}), 400
 
     current_password = data.get("currentPassword")
     new_password = data.get("newPassword")
@@ -233,6 +259,9 @@ def change_candidate_password():
         return jsonify({"message": "All fields required"}), 400
 
     candidate = find_candidate_profile_by_id(request.user["id"])
+
+    if not candidate:
+        return jsonify({"message": "Candidate not found"}), 404
 
     if not check_password(current_password, candidate["password"]):
         return jsonify({"message": "Current password incorrect"}), 401

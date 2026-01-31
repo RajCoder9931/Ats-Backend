@@ -15,7 +15,7 @@ candidate_auth_bp = Blueprint(
 
 @candidate_auth_bp.route("/signup", methods=["POST"])
 def candidate_signup():
-    data = request.json
+    data = request.get_json()
 
     if not data:
         return jsonify({"message": "Invalid JSON body"}), 400
@@ -23,7 +23,7 @@ def candidate_signup():
     required_fields = ["name", "email", "password"]
     for field in required_fields:
         if not data.get(field):
-            return jsonify({"message": "{} is required".format(field)}), 400
+            return jsonify({"message": f"{field} is required"}), 400
 
     if find_candidate_by_email_and_role(data["email"]):
         return jsonify({"message": "Candidate already exists"}), 409
@@ -44,7 +44,10 @@ def candidate_signup():
 
 @candidate_auth_bp.route("/login", methods=["POST"])
 def candidate_login():
-    data = request.json
+    data = request.get_json()
+
+    if not data:
+        return jsonify({"message": "Invalid JSON body"}), 400
 
     candidate = find_candidate_by_email_and_role(data.get("email"))
 

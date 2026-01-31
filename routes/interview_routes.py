@@ -5,13 +5,21 @@ from models.interview_model import create_interview, get_upcoming_interviews
 from models.candidate_model import get_candidate_by_id
 from models.job_model import get_job_by_id
 
-interview_bp = Blueprint("interviews", __name__, url_prefix="/api/interviews")
+interview_bp = Blueprint(
+    "interviews",
+    __name__,
+    url_prefix="/api/interviews"
+)
+
 
 
 @interview_bp.route("", methods=["POST"])
 @auth_required(allowed_roles=["admin", "super_admin"])
 def schedule_interview():
-    data = request.json
+    data = request.get_json()
+
+    if not isinstance(data, dict):
+        return jsonify({"message": "Invalid or missing JSON body"}), 400
 
     required_fields = [
         "candidateId",
@@ -25,25 +33,23 @@ def schedule_interview():
 
     for field in required_fields:
         if not data.get(field):
-            return jsonify({
-                "message": "{} is required".format(field)
-            }), 400
+            return jsonify({"message": f"{field} is required"}), 400
 
-     
+    
     candidate = get_candidate_by_id(data["candidateId"])
     if not candidate:
         return jsonify({"message": "Candidate not found"}), 404
 
-     
+    
     job = get_job_by_id(data["jobId"])
     if not job:
         return jsonify({"message": "Job not found"}), 404
 
     interview = {
         "candidateId": data["candidateId"],
-        "candidateName": candidate["name"],    
+        "candidateName": candidate.get("name"),
         "jobId": data["jobId"],
-        "jobTitle": job["title"],               
+        "jobTitle": job.get("title"),
         "type": data["type"],
         "date": data["date"],
         "time": data["time"],
@@ -56,10 +62,16 @@ def schedule_interview():
     }
 
     saved = create_interview(interview)
+
+    if not saved:
+        return jsonify({"message": "Failed to schedule interview"}), 500
+
     return jsonify(saved), 201
+
 
 
 @interview_bp.route("/upcoming", methods=["GET"])
 @auth_required(allowed_roles=["admin", "super_admin"])
 def upcoming_interviews():
-    return jsonify(get_upcoming_interviews()), 200
+    interviews = get_upcoming_interviews()
+    return jsonify(interviews), 200

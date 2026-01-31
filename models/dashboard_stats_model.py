@@ -12,12 +12,22 @@ interview_feedbacks = db.interview_feedbacks
 
 
 def get_dashboard_stats():
-    stats = {
-        "totalLeads": leads.count_documents({"isActive": True}),
-        "totalContacts": contact_logs.count_documents({"isActive": True}),
-        "totalOpportunities": opportunities.count_documents({"isActive": True}),
-        "totalJobPostings": job_postings.count_documents({"isActive": True}),
-        "totalInterviews": interview_feedbacks.count_documents({"isActive": True})
-    }
+    try:
+        stats = {
+            "totalLeads": leads.count_documents({"isActive": True}),
+            "totalContacts": contact_logs.count_documents({"isActive": True}),
+            "totalOpportunities": opportunities.count_documents({"isActive": True}),
+            "totalJobPostings": job_postings.count_documents({"isActive": True}),
+            "totalInterviews": interview_feedbacks.count_documents({"isActive": True})
+        }
+        return stats
 
-    return stats
+    except Exception as e:
+        print("Dashboard Stats Error:", e)
+        return {
+            "totalLeads": 0,
+            "totalContacts": 0,
+            "totalOpportunities": 0,
+            "totalJobPostings": 0,
+            "totalInterviews": 0
+        }

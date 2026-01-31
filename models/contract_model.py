@@ -18,14 +18,14 @@ def create_contract_from_lead(lead_id, created_by):
             return None, "Lead not found"
 
         # Prevent duplicate contract
-        existing_contract = contracts.find_one({"leadId": lead_id})
+        existing_contract = contracts.find_one({"leadId": ObjectId(lead_id)})
         if existing_contract:
             return None, "Contract already exists for this lead"
 
         now = datetime.datetime.utcnow()
 
         contract = {
-            "leadId": lead_id,
+            "leadId": ObjectId(lead_id),
 
             "companyName": lead.get("companyName"),
             "companyOwnerName": lead.get("companyOwnerName"),
@@ -60,44 +60,46 @@ def create_contract_from_lead(lead_id, created_by):
         )
 
         contract["_id"] = str(result.inserted_id)
+        contract["leadId"] = str(contract["leadId"])
+
         return contract, None
 
     except Exception as e:
+        print("Create Contract Error:", e)
         return None, str(e)
+
+
+def _serialize_contract(doc):
+    doc["_id"] = str(doc["_id"])
+    if doc.get("leadId"):
+        doc["leadId"] = str(doc["leadId"])
+    return doc
 
 
 def get_all_contracts():
     cursor = contracts.find().sort("createdAt", -1)
-    result = []
-
-    for doc in cursor:
-        doc["_id"] = str(doc["_id"])
-        result.append(doc)
-
-    return result
+    return [_serialize_contract(doc) for doc in cursor]
 
 
 def get_contract_by_id(contract_id):
     try:
         contract = contracts.find_one({"_id": ObjectId(contract_id)})
-
         if not contract:
             return None
-
-        contract["_id"] = str(contract["_id"])
-        return contract
-
+        return _serialize_contract(contract)
     except Exception:
         return None
 
 
 def deactivate_contract(contract_id):
-    result = contracts.update_one(
-        {"_id": ObjectId(contract_id)},
-        {"$set": {
-            "contractStatus": "Inactive",
-            "updatedAt": datetime.datetime.utcnow()
-        }}
-    )
-
-    return result.modified_count > 0
+    try:
+        result = contracts.update_one(
+            {"_id": ObjectId(contract_id)},
+            {"$set": {
+                "contractStatus": "Inactive",
+                "updatedAt": datetime.datetime.utcnow()
+            }}
+        )
+        return result.modified_count > 0
+    except Exception:
+        return False

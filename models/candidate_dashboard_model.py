@@ -2,6 +2,7 @@ from pymongo import MongoClient
 from bson import ObjectId
 from config import MONGO_URI
 
+
 client = MongoClient(MONGO_URI)
 db = client.ERPApp
 
@@ -28,7 +29,7 @@ def calculate_profile_score(candidate):
             filled += 1
 
     total = len(fields)
-    percentage = int((filled / float(total)) * 100)
+    percentage = int((filled / total) * 100)
 
     return {
         "completed_fields": filled,
@@ -38,9 +39,12 @@ def calculate_profile_score(candidate):
 
 
 def get_candidate_dashboard_stats(candidate_id):
-    cid = ObjectId(candidate_id)
+    try:
+        cid = ObjectId(candidate_id)
+    except Exception:
+        return {"error": "Invalid candidate id"}
 
-    # ---------- JOB STATS ----------
+
     total_applied = job_applications.count_documents({
         "candidateId": cid
     })
@@ -60,7 +64,7 @@ def get_candidate_dashboard_stats(candidate_id):
         "status": "Selected"
     })
 
-    # ---------- PROFILE SCORE ----------
+    
     candidate = candidate_profiles.find_one({"_id": cid})
     profile_score = calculate_profile_score(candidate) if candidate else {}
 

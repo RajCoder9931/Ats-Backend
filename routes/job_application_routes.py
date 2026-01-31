@@ -14,7 +14,6 @@ job_application_bp = Blueprint(
 )
 
 
-# Apply for Job
 @job_application_bp.route("/jobs/<job_id>/apply", methods=["POST"])
 @auth_required(allowed_roles=["candidate"])
 def apply_job(job_id):
@@ -29,13 +28,16 @@ def apply_job(job_id):
 
     application = apply_for_job(job_id, candidate_id)
 
+    if not application:
+        return jsonify({"message": "Failed to apply for job"}), 500
+
     return jsonify({
         "message": "Job applied successfully",
         "application": application
     }), 201
 
 
-# Get The applied Job By candidate
+
 @job_application_bp.route("/candidate/applied-jobs", methods=["GET"])
 @auth_required(allowed_roles=["candidate"])
 def get_applied_jobs():

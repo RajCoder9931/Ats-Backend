@@ -11,13 +11,21 @@ from models.lead_model import (
     update_lead
 )
 
-lead_bp = Blueprint("leads", __name__, url_prefix="/api/leads")
+lead_bp = Blueprint(
+    "leads",
+    __name__,
+    url_prefix="/api/leads"
+)
+
 
 
 @lead_bp.route("", methods=["POST"])
 @auth_required(allowed_roles=["admin", "super_admin", "recruiter"])
 def add_lead():
     data = request.get_json()
+
+    if not isinstance(data, dict):
+        return jsonify({"message": "Invalid or missing JSON body"}), 400
 
     required_fields = [
         "companyName",
@@ -30,12 +38,17 @@ def add_lead():
 
     for field in required_fields:
         if not data.get(field):
-            return jsonify({"message": "{} is required".format(field)}), 400
+            return jsonify({"message": f"{field} is required"}), 400
 
     data["createdBy"] = request.user.get("id")
 
     lead = create_lead(data)
+
+    if not lead:
+        return jsonify({"message": "Failed to create lead"}), 500
+
     return jsonify(lead), 201
+
 
 
 @lead_bp.route("/active", methods=["GET"])
@@ -45,11 +58,13 @@ def fetch_active_leads():
     return jsonify(leads), 200
 
 
+
 @lead_bp.route("/inactive", methods=["GET"])
 @auth_required(allowed_roles=["admin", "super_admin", "recruiter"])
 def fetch_inactive_leads():
     leads = get_inactive_leads()
     return jsonify(leads), 200
+
 
 
 @lead_bp.route("/<lead_id>", methods=["GET"])
@@ -63,10 +78,14 @@ def fetch_lead_by_id(lead_id):
     return jsonify(lead), 200
 
 
+
 @lead_bp.route("/<lead_id>", methods=["PUT"])
 @auth_required(allowed_roles=["admin", "super_admin", "recruiter"])
 def update_lead_api(lead_id):
     data = request.get_json()
+
+    if not isinstance(data, dict):
+        return jsonify({"message": "Invalid JSON body"}), 400
 
     success = update_lead(lead_id, data)
 
@@ -74,6 +93,7 @@ def update_lead_api(lead_id):
         return jsonify({"message": "Lead not found or no changes made"}), 404
 
     return jsonify({"message": "Lead updated successfully"}), 200
+
 
 
 @lead_bp.route("/deactivate/<lead_id>", methods=["PUT"])
@@ -87,6 +107,7 @@ def deactivate(lead_id):
     return jsonify({"message": "Lead deactivated successfully"}), 200
 
 
+
 @lead_bp.route("/activate/<lead_id>", methods=["PUT"])
 @auth_required(allowed_roles=["admin", "super_admin", "recruiter"])
 def activate(lead_id):
@@ -97,6 +118,8 @@ def activate(lead_id):
 
     return jsonify({"message": "Lead activated successfully"}), 200
 
+
+
 @lead_bp.route("/convert/<lead_id>", methods=["POST"])
 @auth_required(allowed_roles=["admin", "super_admin", "recruiter"])
 def convert_lead(lead_id):
@@ -106,6 +129,9 @@ def convert_lead(lead_id):
 
     if error:
         return jsonify({"message": error}), 400
+
+    if not contract:
+        return jsonify({"message": "Failed to convert lead"}), 500
 
     return jsonify({
         "message": "Lead converted to contract",

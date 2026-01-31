@@ -14,18 +14,28 @@ pipeline_bp = Blueprint(
     url_prefix="/api/pipeline"
 )
 
+
+
 @pipeline_bp.route("/assign", methods=["POST"])
 @auth_required(allowed_roles=["admin", "super_admin"])
 def assign_job():
-    data = request.json
+    data = request.get_json()
+
+    if not isinstance(data, dict):
+        return jsonify({"message": "Invalid or missing JSON body"}), 400
+
     candidate_id = data.get("candidateId")
     job_id = data.get("jobId")
     job_title = data.get("jobTitle")
 
     if not all([candidate_id, job_id, job_title]):
-        return jsonify({"message": "candidateId, jobId, jobTitle required"}), 400
+        return jsonify({"message": "candidateId, jobId and jobTitle are required"}), 400
 
     candidate = assign_job_to_candidate(candidate_id, job_id, job_title)
+
+    if not candidate:
+        return jsonify({"message": "Candidate not found"}), 404
+
     candidate["_id"] = str(candidate["_id"])
 
     return jsonify({
@@ -34,19 +44,25 @@ def assign_job():
     }), 200
 
 
+
 @pipeline_bp.route("/stage", methods=["PUT"])
 @auth_required(allowed_roles=["admin", "super_admin"])
 def change_stage():
-    data = request.json
+    data = request.get_json()
+
+    if not isinstance(data, dict):
+        return jsonify({"message": "Invalid JSON body"}), 400
+
     candidate_id = data.get("candidateId")
     stage = data.get("stage")
 
     if not candidate_id or not stage:
-        return jsonify({"message": "candidateId and stage required"}), 400
+        return jsonify({"message": "candidateId and stage are required"}), 400
 
     candidate = update_candidate_stage(candidate_id, stage)
+
     if not candidate:
-        return jsonify({"message": "Invalid stage"}), 400
+        return jsonify({"message": "Invalid stage or candidate not found"}), 400
 
     candidate["_id"] = str(candidate["_id"])
 
@@ -54,6 +70,7 @@ def change_stage():
         "message": "Stage updated successfully",
         "candidate": candidate
     }), 200
+
 
 
 @pipeline_bp.route("/job/<job_id>", methods=["GET"])
@@ -67,6 +84,7 @@ def candidates_by_job(job_id):
     return jsonify(candidates), 200
 
 
+
 @pipeline_bp.route("/stage/<stage>", methods=["GET"])
 @auth_required(allowed_roles=["admin", "super_admin"])
 def candidates_by_stage(stage):
@@ -78,6 +96,7 @@ def candidates_by_stage(stage):
     return jsonify(candidates), 200
 
 
+
 @pipeline_bp.route("/candidate/<candidate_id>", methods=["GET"])
 @auth_required(allowed_roles=["admin", "super_admin"])
 def candidate_pipeline(candidate_id):
@@ -87,4 +106,5 @@ def candidate_pipeline(candidate_id):
         return jsonify({"message": "Candidate not found"}), 404
 
     candidate["_id"] = str(candidate["_id"])
+
     return jsonify(candidate), 200

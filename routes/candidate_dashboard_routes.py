@@ -8,9 +8,14 @@ candidate_dashboard_bp = Blueprint(
     url_prefix="/api/candidate/dashboard"
 )
 
+
 @candidate_dashboard_bp.route("/stats", methods=["GET"])
 @auth_required(allowed_roles=["candidate"])
 def candidate_dashboard_stats():
     candidate_id = request.user.get("id")
     stats = get_candidate_dashboard_stats(candidate_id)
+
+    if "error" in stats:
+        return jsonify(stats), 400
+
     return jsonify(stats), 200

@@ -1,50 +1,68 @@
 from flask import Blueprint, request, jsonify
 from middleware.auth_middleware import auth_required
 from models.job_posting_model import (
-    create_job_posting,
+    create_job_posting_from_opportunity,
+    get_all_job_postings,
     get_active_job_postings,
     get_inactive_job_postings,
     get_job_posting_by_id,
-    deactivate_job_posting,
-    activate_job_posting
+    get_job_posting_by_opportunity_id
 )
 
-job_posting_bp = Blueprint("job_postings", __name__, url_prefix="/api/job-postings")
+job_posting_bp = Blueprint(
+    "job_postings",
+    __name__,
+    url_prefix="/api/job-postings"
+)
 
-
-@job_posting_bp.route("", methods=["POST"])
+@job_posting_bp.route("/convert/<opportunity_id>", methods=["POST"])
 @auth_required(allowed_roles=["admin", "super_admin", "recruiter"])
-def add_job_posting():
-    data = request.get_json()
+def convert_opportunity_to_job(opportunity_id):
+    user = getattr(request, "user", None)
+    user_id = user.get("id") if user else None
 
-    required_fields = ["opportunityId", "companyName", "jobTitle", "jobDescription", "numberOfOpenings"]
-    for field in required_fields:
-        if not data.get(field):
-            return jsonify({"message": "{} is required".format(field)}), 400
+    job = create_job_posting_from_opportunity(opportunity_id, user_id)
 
-    data["createdBy"] = request.user.get("id")
+    if job == "EXISTS":
+        return jsonify({
+            "message": "Job posting already exists for this opportunity"
+        }), 409
 
-    job = create_job_posting(data)
-    return jsonify(job), 201
+    if not job:
+        return jsonify({
+            "message": "Opportunity not found or inactive"
+        }), 404
+
+    return jsonify({
+        "message": "Job posting created successfully",
+        "job": job
+    }), 201
+
+
+@job_posting_bp.route("", methods=["GET"])
+@auth_required(allowed_roles=["admin", "super_admin", "recruiter"])
+def fetch_all_jobs():
+    jobs = get_all_job_postings()
+    return jsonify(jobs), 200
 
 
 @job_posting_bp.route("/active", methods=["GET"])
 @auth_required(allowed_roles=["admin", "super_admin", "recruiter"])
-def fetch_active_job_postings():
+def fetch_active_jobs():
     jobs = get_active_job_postings()
     return jsonify(jobs), 200
 
 
 @job_posting_bp.route("/inactive", methods=["GET"])
 @auth_required(allowed_roles=["admin", "super_admin", "recruiter"])
-def fetch_inactive_job_postings():
+def fetch_inactive_jobs():
     jobs = get_inactive_job_postings()
     return jsonify(jobs), 200
 
 
 @job_posting_bp.route("/<job_id>", methods=["GET"])
 @auth_required(allowed_roles=["admin", "super_admin", "recruiter"])
-def fetch_job_posting_by_id(job_id):
+def fetch_job_by_id(job_id):
     job = get_job_posting_by_id(job_id)
 
     if not job:
@@ -53,23 +71,14 @@ def fetch_job_posting_by_id(job_id):
     return jsonify(job), 200
 
 
-@job_posting_bp.route("/deactivate/<job_id>", methods=["PUT"])
+@job_posting_bp.route("/by-opportunity/<opportunity_id>", methods=["GET"])
 @auth_required(allowed_roles=["admin", "super_admin", "recruiter"])
-def deactivate(job_id):
-    success = deactivate_job_posting(job_id)
+def fetch_job_by_opportunity(opportunity_id):
+    job = get_job_posting_by_opportunity_id(opportunity_id)
 
-    if not success:
-        return jsonify({"message": "Job posting not found"}), 404
+    if not job:
+        return jsonify({
+            "message": "No job posting found for this opportunity"
+        }), 404
 
-    return jsonify({"message": "Job posting deactivated successfully"}), 200
-
-
-@job_posting_bp.route("/activate/<job_id>", methods=["PUT"])
-@auth_required(allowed_roles=["admin", "super_admin", "recruiter"])
-def activate(job_id):
-    success = activate_job_posting(job_id)
-
-    if not success:
-        return jsonify({"message": "Job posting not found"}), 404
-
-    return jsonify({"message": "Job posting activated successfully"}), 200
+    return jsonify(job), 200

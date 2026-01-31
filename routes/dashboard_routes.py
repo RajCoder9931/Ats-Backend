@@ -8,9 +8,15 @@ dashboard_bp = Blueprint(
     url_prefix="/api/dashboard"
 )
 
+
 @dashboard_bp.route("/stats", methods=["GET"])
 @auth_required(allowed_roles=["admin", "super_admin"])
 def dashboard_stats():
-    stats = get_dashboard_stats(request.user.get("id"))
-    return jsonify(stats), 200
+    user_id = request.user.get("id")
 
+    stats = get_dashboard_stats(user_id)
+
+    if not stats:
+        return jsonify({"message": "Failed to fetch dashboard stats"}), 500
+
+    return jsonify(stats), 200

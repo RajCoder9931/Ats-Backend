@@ -1,36 +1,53 @@
 import jwt
 import datetime
-from config import JWT_SECRET, ACCESS_TOKEN_MINUTES 
+from config import JWT_SECRET, ACCESS_TOKEN_MINUTES
+from jwt import ExpiredSignatureError, InvalidTokenError
 
 
 def generate_access_token(user):
-   
     payload = {
         "id": str(user["_id"]),
-        "email": user["email"],
-        "role": user["role"],   # admin / super_admin
+        "email": user.get("email"),
+        "role": user.get("role"),
         "type": "access",
-        "exp": datetime.datetime.utcnow()
-        + datetime.timedelta(minutes=ACCESS_TOKEN_MINUTES),
+        "iat": datetime.datetime.utcnow(),
+        "exp": datetime.datetime.utcnow() + datetime.timedelta(minutes=ACCESS_TOKEN_MINUTES),
     }
 
-    return jwt.encode(payload, JWT_SECRET, algorithm="HS256")
+    token = jwt.encode(payload, JWT_SECRET, algorithm="HS256")
 
+    # PyJWT >= 2.0 returns str, older returns bytes
+    if isinstance(token, bytes):
+        token = token.decode("utf-8")
+
+    return token
 
 
 def generate_candidate_token(user):
-    
     payload = {
         "id": str(user["_id"]),
-        "email": user["email"],
+        "email": user.get("email"),
         "role": "candidate",
-        "type": "candidate",
-        "exp": datetime.datetime.utcnow()
-        + datetime.timedelta(minutes=ACCESS_TOKEN_MINUTES),
+        "type": "access",
+        "iat": datetime.datetime.utcnow(),
+        "exp": datetime.datetime.utcnow() + datetime.timedelta(minutes=ACCESS_TOKEN_MINUTES),
     }
 
-    return jwt.encode(payload, JWT_SECRET, algorithm="HS256")
+    token = jwt.encode(payload, JWT_SECRET, algorithm="HS256")
+
+    if isinstance(token, bytes):
+        token = token.decode("utf-8")
+
+    return token
 
 
 def decode_token(token):
-    return jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
+    try:
+        payload = jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
+        return payload
+
+    except ExpiredSignatureError:
+        raise Exception("Token expired")
+
+    except InvalidTokenError:
+        raise Exception("Invalid token")

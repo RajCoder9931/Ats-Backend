@@ -14,7 +14,8 @@ candidate_bp = Blueprint(
     url_prefix="/api/candidates"
 )
 
-# Create candidate by admin 
+
+
 @candidate_bp.route("", methods=["POST"])
 @auth_required(allowed_roles=["admin", "super_admin"])
 def add_candidate():
@@ -26,7 +27,7 @@ def add_candidate():
     required_fields = ["name", "email", "phone", "location", "source"]
     for field in required_fields:
         if not data.get(field):
-            return jsonify({"message": "{} is required".format(field)}), 400
+            return jsonify({"message": f"{field} is required"}), 400
 
     candidate = {
         "name": data.get("name"),
@@ -52,25 +53,29 @@ def add_candidate():
 
     saved = create_candidate(candidate)
 
+    if not saved:
+        return jsonify({"message": "Failed to create candidate"}), 500
+
     create_notification({
         "userId": request.user.get("id"),
         "type": "candidate",
         "title": "New Candidate Added",
-        "message": "{} was added as a candidate".format(candidate.get("name")),
+        "message": f"{candidate.get('name')} was added as a candidate",
         "entityId": saved.get("_id")
     })
 
     return jsonify(saved), 201
 
 
-# Get the all candidate using admin and super_admin 
+
 @candidate_bp.route("", methods=["GET"])
 @auth_required(allowed_roles=["admin", "super_admin"])
 def fetch_candidates():
-    return jsonify(get_all_candidates()), 200
+    candidates = get_all_candidates()
+    return jsonify(candidates), 200
 
 
-# Update the Candidate details 
+
 @candidate_bp.route("/<candidate_id>", methods=["PUT"])
 @auth_required(allowed_roles=["admin", "super_admin"])
 def update_candidate(candidate_id):
@@ -84,24 +89,26 @@ def update_candidate(candidate_id):
     if not updated:
         return jsonify({"message": "Candidate not found"}), 404
 
-    updated["_id"] = str(updated["_id"])
-
     create_notification({
         "userId": request.user.get("id"),
         "type": "candidate",
         "title": "Candidate Updated",
-        "message": "{} profile was updated".format(updated.get("name")),
-        "entityId": updated["_id"]
+        "message": f"{updated.get('name')} profile was updated",
+        "entityId": updated.get("_id")
     })
 
     return jsonify(updated), 200
 
 
-# Update the Candidate status 
+
 @candidate_bp.route("/<candidate_id>/status", methods=["PUT"])
 @auth_required(allowed_roles=["admin", "super_admin"])
 def update_candidate_status(candidate_id):
     data = request.get_json()
+
+    if not data:
+        return jsonify({"message": "Invalid JSON body"}), 400
+
     status = data.get("status")
 
     if status not in ["Active", "Inactive"]:
@@ -112,20 +119,18 @@ def update_candidate_status(candidate_id):
     if not updated:
         return jsonify({"message": "Candidate not found"}), 404
 
-    updated["_id"] = str(updated["_id"])
-
     create_notification({
         "userId": request.user.get("id"),
         "type": "candidate",
         "title": "Candidate Status Changed",
-        "message": "{} marked as {}".format(updated.get("name"), status),
-        "entityId": updated["_id"]
+        "message": f"{updated.get('name')} marked as {status}",
+        "entityId": updated.get("_id")
     })
 
     return jsonify(updated), 200
 
 
-# Update/Add the Candidate Experience 
+
 @candidate_bp.route("/<candidate_id>/experience", methods=["PUT"])
 @auth_required(allowed_roles=["admin", "super_admin"])
 def update_experience(candidate_id):
@@ -139,14 +144,12 @@ def update_experience(candidate_id):
     if not updated:
         return jsonify({"message": "Candidate not found"}), 404
 
-    updated["_id"] = str(updated["_id"])
-
     create_notification({
         "userId": request.user.get("id"),
         "type": "candidate",
         "title": "Experience Updated",
-        "message": "Experience updated for {}".format(updated.get("name")),
-        "entityId": updated["_id"]
+        "message": f"Experience updated for {updated.get('name')}",
+        "entityId": updated.get("_id")
     })
 
     return jsonify(updated), 200
@@ -163,7 +166,7 @@ def fetch_experience(candidate_id):
     }), 200
 
 
-# Add/Update Candidate Education
+
 @candidate_bp.route("/<candidate_id>/education", methods=["PUT"])
 @auth_required(allowed_roles=["admin", "super_admin"])
 def update_education(candidate_id):
@@ -177,14 +180,12 @@ def update_education(candidate_id):
     if not updated:
         return jsonify({"message": "Candidate not found"}), 404
 
-    updated["_id"] = str(updated["_id"])
-
     create_notification({
         "userId": request.user.get("id"),
         "type": "candidate",
         "title": "Education Updated",
-        "message": "Education updated for {}".format(updated.get("name")),
-        "entityId": updated["_id"]
+        "message": f"Education updated for {updated.get('name')}",
+        "entityId": updated.get("_id")
     })
 
     return jsonify(updated), 200
