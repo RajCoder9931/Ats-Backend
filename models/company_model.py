@@ -1,45 +1,81 @@
 from pymongo import MongoClient
-from bson import ObjectId
+from bson.objectid import ObjectId
 from config import MONGO_URI
 import datetime
 
 client = MongoClient(MONGO_URI)
-db = client.ATS
-companies = db.companies
+db = client.ERPApp
+candidates = db.candidates
 
 
-def create_company(data):
-    data["createdDate"] = datetime.datetime.utcnow().strftime("%Y-%m-%d")
-
-    data["stats"] = {
-        "candidates": 0,
-        "totalCandidates": 0,
-        "contacts": 0,
-        "totalContacts": 0,
-        "paidUsers": 0,
-        "totalUsers": 1,
-        "storageUsed": "0 MB",
-    }
-
-    result = companies.insert_one(data)
+def create_candidate(data):
+    data["createdAt"] = datetime.datetime.utcnow().isoformat()
+    result = candidates.insert_one(data)
     data["_id"] = str(result.inserted_id)
     return data
 
 
-def get_all_companies():
+def get_all_candidates():
+    cursor = candidates.find().sort("createdAt", -1)
     result = []
-    for company in companies.find():
-        company["_id"] = str(company["_id"])
-        result.append(company)
+
+    for doc in cursor:
+        doc["_id"] = str(doc["_id"])
+        result.append(doc)
+
     return result
 
 
-def get_company_by_id(company_id):
+def get_candidate_by_id(candidate_id):
     try:
-        company = companies.find_one({"_id": ObjectId(company_id)})
-        if not company:
+        candidate = candidates.find_one({"_id": ObjectId(candidate_id)})
+        if not candidate:
             return None
-        company["_id"] = str(company["_id"])
-        return company
+        candidate["_id"] = str(candidate["_id"])
+        return candidate
     except Exception:
+        return None
+
+
+def find_candidate_by_email_and_role(email):
+    return candidates.find_one({
+        "email": email,
+        "role": "candidate"
+    })
+
+
+def update_candidate_by_id(candidate_id, data):
+    try:
+        update_fields = {}
+
+        allowed_fields = [
+            "name", "email", "phone", "location",
+            "country", "state", "locality",
+            "dateOfBirth", "gender",
+            "skills", "experience", "education",
+            "currentCompany", "currentPosition",
+            "notes", "status", "stage"
+        ]
+
+        for field in allowed_fields:
+            if field in data:
+                update_fields[field] = data[field]
+
+        if not update_fields:
+            return None
+
+        update_fields["updatedAt"] = datetime.datetime.utcnow().isoformat()
+
+        candidates.update_one(
+            {"_id": ObjectId(candidate_id)},
+            {"$set": update_fields}
+        )
+
+        candidate = candidates.find_one({"_id": ObjectId(candidate_id)})
+        if candidate:
+            candidate["_id"] = str(candidate["_id"])
+        return candidate
+
+    except Exception as e:
+        print("Update Candidate Error:", e)
         return None
